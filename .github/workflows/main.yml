@@ -13,7 +13,13 @@ jobs:
         with:
           gradle-version: 8.7
       - run: unzip -q XiOptimizer.zip -d work
-      - run: cd work/xiopt && gradle assembleDebug --no-daemon
+      - name: Build
+        run: |
+          cd work/xiopt
+          gradle assembleDebug --no-daemon > ../build.log 2>&1 || {
+            grep -E '^e: |What went wrong|Could not|error:' ../build.log | head -9 | while IFS= read -r l; do echo "::error::${l:0:300}"; done
+            exit 1
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: XiOptimizer-apk
